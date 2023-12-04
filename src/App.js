@@ -8,14 +8,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-// import Pagination from '@mui/material/Pagination';
 import Box from './components/box';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Edit from './components/edit'
-import searchHelper from "./utils/searchHelper";
+import {searchHelper} from "./utils/helperFuntions";
 import Pagination from "./components/pagination";
+import Button from '@mui/material/Button';
+
 
 
 function App() {
@@ -31,8 +31,7 @@ function App() {
       userLength += 1;
     }
   })
-
-  console.log(users);
+  let totalPage = Math.ceil(userLength/10.0);
 
   const editHandler = (userForEdit)=>{
     setIsEdit(true);
@@ -63,6 +62,7 @@ function App() {
 
   const searchUsers = (e)=>{
     setUsers(searchHelper(e.target.value, users));
+    setPage(1);
   }
 
   const selectionHandler = (id)=>{
@@ -80,7 +80,35 @@ function App() {
         
       }
     })
-    console.log(users)
+  }
+  const multipleSelection = ()=>{
+    const isCheck = document.querySelector('#multipleSelectCheckbox').checked;
+    if(isCheck){
+        usersOnPage.map((newUser)=>{
+        users.map((user)=>{
+          if(user.id === newUser.id){
+            user.selected = true;
+            console.log(user);
+            setSelectedUsers((prev)=> [...prev, user.id]);
+          }
+        })
+      })
+      console.log(selectedUsers);
+    }
+    else{
+      usersOnPage.map((newUser)=>{
+        users.map((user)=>{
+          if(user.id === newUser.id){
+            user.selected = false;
+            
+          }
+        })
+      })
+      setSelectedUsers([]);
+      
+      console.log(selectedUsers);
+    }
+    
   }
   const multipleDeleteHandler = ()=>{
     let newUser = users.filter((user)=>{
@@ -88,28 +116,37 @@ function App() {
     })
     setUsers(newUser);
     setSelectedUsers([]);
+    document.querySelector('#multipleSelectCheckbox').checked = false;
+    if(page === totalPage){
+      setPage(Math.max(1,page-1));
+    }
   }
-
+  
   let index = (page-1)*10;
-
+  var usersOnPage = users.filter((user)=> user.visible).slice(index, index+10);
   return (
     <div className="App">
       <Header />
-      {selectedUsers.length !== 0 && <button onClick={multipleDeleteHandler}>Delete Users</button>}
         <Box>
           <input
             type="text"
             placeholder="Search Keywords"
             onChange={searchUsers}
-            className='outline-blue-500'
+            className='outline-blue-500 p-2'
           />
-          {/* <Pagination count={10} /> */}
-          <Pagination page={page} setPage={setPage} userLength={userLength}/>
-          <TableContainer component={Paper}>
+          <div className="flex">
+            <div className="flex align-center justify-center m-4">
+              {selectedUsers.length !== 0 && <Button variant='filled' onClick={multipleDeleteHandler} className="m-2">Delete Users</Button>}
+            </div>
+            <div className="ml-auto">
+              <Pagination page={page} setPage={setPage} userLength={userLength} />
+            </div>  
+          </div>
+          <TableContainer component={Paper} className="m-4">
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell> <Checkbox /></TableCell>
+                  <TableCell> <input type='checkbox' id="multipleSelectCheckbox" onClick={multipleSelection}/></TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
@@ -117,12 +154,12 @@ function App() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map((user) => (
-                  user.visible && <TableRow
+                { usersOnPage.map((user) => (
+                   <TableRow
                     key={user.id}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
-                    <TableCell> <Checkbox onClick={()=>selectionHandler(user.id)}/></TableCell>
+                    <TableCell> <input type="checkbox" checked={user.selected} onClick={()=>selectionHandler(user.id)}/></TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>

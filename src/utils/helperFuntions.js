@@ -1,7 +1,6 @@
 
 
-const searchHelper = (key, users)=>{
-
+export const searchHelper = (key, users)=>{
     let search = key.toLowerCase();
     return users.map((user) => {
         if (
@@ -16,4 +15,3 @@ const searchHelper = (key, users)=>{
         return user;
     });
 }
-export default searchHelper;
